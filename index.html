@@ -222,7 +222,43 @@ h2 { font-family: var(--display); font-size: clamp(1.7rem, 3vw, 2.3rem); font-we
 .ch .go { font: 500 12px var(--mono); opacity: .7; white-space: nowrap; }
 footer { padding-block: 32px 40px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 
+/* 3D hero scene */
+.scene-wrap {
+  position: relative; min-height: 480px; border-radius: 22px; overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 100%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--line); box-shadow: var(--shadow);
+}
+.scene-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; }
+.scene-wrap canvas:active { cursor: grabbing; }
+.scene-tag {
+  position: absolute; left: 16px; top: 14px; display: flex; gap: 8px; align-items: center;
+  font: 500 12px var(--mono); color: var(--muted); pointer-events: none;
+}
+.scene-tag b { color: var(--ink); font-weight: 500; }
+.scene-legend {
+  position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  font: 500 12px var(--mono); color: var(--muted); pointer-events: none;
+}
+.scene-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.scene-fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+
+/* Demo section */
+.demo { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
+.demo > * { min-width: 0; }
+.demo ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--muted); }
+.demo ul b { color: var(--ink); }
+
+/* 3D tilt on cards + scroll reveal */
+.cases { perspective: 1400px; }
+.case { transform-style: preserve-3d; will-change: transform; transition: transform .25s ease, border-color .2s ease, box-shadow .2s ease; }
+.js .reveal { transform: translateY(18px); transition: transform .7s cubic-bezier(.2,.7,.2,1); }
+.js .reveal.in { transform: none; }
+
 @media (max-width: 920px) {
+  .demo { grid-template-columns: 1fr; gap: 28px; }
+  .scene-wrap { min-height: 380px; }
   .hero { grid-template-columns: 1fr; gap: 40px; padding-block: 48px 40px; }
   .case { grid-template-columns: 1fr; }
   .case-side { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -248,6 +284,10 @@ footer { padding-block: 32px 40px; display: flex; justify-content: space-between
 </style>
 <script>
   try { var t = localStorage.getItem('theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  document.documentElement.classList.add('js');
+</script>
+<script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
 </script>
 </head>
 <body>
@@ -309,6 +349,31 @@ footer { padding-block: 32px 40px; display: flex; justify-content: space-between
         </div>
       </div>
 
+      <div class="scene-wrap" id="scene-wrap" aria-label="Interactive 3D posterior surface explored by MCMC chains">
+        <canvas id="scene"></canvas>
+        <div class="scene-tag"><b>posterior surface</b> · 400 MCMC chains</div>
+        <div class="scene-legend"><span><i style="background:var(--accent)"></i>density p(θ | data)</span><span><i style="background:var(--warm)"></i>chain positions</span><span>drag to rotate</span></div>
+      </div>
+    </div>
+
+    <div class="proof reveal" aria-label="Highlights">
+      <div><div class="n">0.90</div><div class="l">R² on Bayesian marketing mix models</div></div>
+      <div><div class="n">~2<small> yrs</small></div><div class="l">Industry data science experience</div></div>
+      <div><div class="n">min→sec</div><div class="l">Statement processing time in FinBot</div></div>
+      <div><div class="n">3</div><div class="l">Diagnostic CNN models in IntelliMedicare</div></div>
+    </div>
+
+    <section id="demo" class="demo reveal">
+      <div>
+        <p class="kicker">Live demo</p>
+        <h2>Watch a posterior take shape</h2>
+        <p class="sub" style="margin-bottom:20px">The same algorithm family behind my PyMC models runs in your browser right now. Each draw is a Metropolis-Hastings step, and the histogram converges to the true distribution.</p>
+        <ul>
+          <li><b>Draws</b>: samples taken so far</li>
+          <li><b>Accept</b>: share of proposals the sampler kept</li>
+          <li><b>94% HDI</b>: the narrowest interval holding 94% of the samples</li>
+        </ul>
+      </div>
       <figure class="sampler" style="margin:0" aria-label="Live demo: a Metropolis-Hastings sampler building a posterior distribution">
         <div class="sampler-head">
           <span class="ttl"><b>metropolis_hastings</b>(target = channel_roi)</span>
@@ -322,20 +387,13 @@ footer { padding-block: 32px 40px; display: flex; justify-content: space-between
           <div class="stat"><div class="k">94% HDI</div><div class="v" id="s-hdi">–</div></div>
         </div>
         <div class="sampler-foot">
-          <span>A live MCMC sampler, the same idea behind my PyMC models.</span>
+          <span>Metropolis-Hastings, 6,000 draws.</span>
           <button class="mini-btn" id="resample" type="button">Resample</button>
         </div>
       </figure>
-    </div>
+    </section>
 
-    <div class="proof" aria-label="Highlights">
-      <div><div class="n">0.90</div><div class="l">R² on Bayesian marketing mix models</div></div>
-      <div><div class="n">~2<small> yrs</small></div><div class="l">Industry data science experience</div></div>
-      <div><div class="n">min→sec</div><div class="l">Statement processing time in FinBot</div></div>
-      <div><div class="n">3</div><div class="l">Diagnostic CNN models in IntelliMedicare</div></div>
-    </div>
-
-    <section id="work">
+    <section id="work" class="reveal">
       <p class="kicker">Selected work</p>
       <h2>Problems I've solved</h2>
       <p class="sub">One industry engagement and two end-to-end builds, each written as the problem, what I did and what changed.</p>
@@ -420,7 +478,7 @@ footer { padding-block: 32px 40px; display: flex; justify-content: space-between
       </div>
     </section>
 
-    <section id="experience">
+    <section id="experience" class="reveal">
       <p class="kicker">Experience</p>
       <h2>Where I've worked</h2>
       <p class="sub">Two roles so far: enterprise data quality and client-facing statistical modeling.</p>
@@ -452,7 +510,7 @@ footer { padding-block: 32px 40px; display: flex; justify-content: space-between
       </div>
     </section>
 
-    <section id="toolkit">
+    <section id="toolkit" class="reveal">
       <p class="kicker">Toolkit</p>
       <h2>What I work with</h2>
       <p class="sub">Grouped by the kind of problem each tool solves.</p>
@@ -472,7 +530,7 @@ footer { padding-block: 32px 40px; display: flex; justify-content: space-between
       </div>
     </section>
 
-    <div class="contact" id="contact">
+    <div class="contact reveal" id="contact">
       <div>
         <p class="kicker" style="color:var(--accent)">Contact</p>
         <h2>Let's build something with your data.</h2>
@@ -612,6 +670,163 @@ footer { padding-block: 32px 40px; display: flex; justify-content: space-between
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
   start();
 })();
+
+/* Scroll reveal + 3D card tilt */
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var items = document.querySelectorAll('.reveal');
+  if (reduce || !('IntersectionObserver' in window)) { items.forEach(function (el) { el.classList.add('in'); }); }
+  else {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { rootMargin: '0px 0px -8% 0px' });
+    items.forEach(function (el) { io.observe(el); });
+  }
+  if (reduce || !window.matchMedia('(hover: hover)').matches) return;
+  document.querySelectorAll('.case').forEach(function (card) {
+    card.addEventListener('pointermove', function (e) {
+      var r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = 'rotateY(' + (x * 5).toFixed(2) + 'deg) rotateX(' + (-y * 5).toFixed(2) + 'deg) translateZ(0)';
+    });
+    card.addEventListener('pointerleave', function () { card.style.transform = ''; });
+  });
+})();
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const wrap = document.getElementById('scene-wrap');
+const canvas = document.getElementById('scene');
+const root = document.documentElement;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const tok = n => getComputedStyle(root).getPropertyValue(n).trim();
+
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); }
+catch (e) {
+  const fb = document.createElement('div'); fb.className = 'scene-fallback';
+  fb.textContent = 'Your browser has WebGL turned off, so the 3D posterior surface cannot be shown here.';
+  wrap.appendChild(fb); throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+
+// Posterior: a mixture of three Gaussians over (θ1, θ2)
+const modes = [ [0.9, 0.4, 0.62, 1.0], [-1.15, -0.85, 0.5, 0.7], [-0.15, 1.45, 0.4, 0.42] ];
+function density(x, z) {
+  let s = 0;
+  for (const [mx, mz, sd, w] of modes) s += w * Math.exp(-((x - mx) ** 2 + (z - mz) ** 2) / (2 * sd * sd));
+  return s;
+}
+const H = 2.1, SIZE = 6.4, SEG = 96;
+
+// Surface
+const geo = new THREE.PlaneGeometry(SIZE, SIZE, SEG, SEG);
+geo.rotateX(-Math.PI / 2);
+const pos = geo.attributes.position;
+let peak = 0;
+for (let i = 0; i < pos.count; i++) { const d = density(pos.getX(i), pos.getZ(i)); pos.setY(i, d * H); peak = Math.max(peak, d); }
+geo.computeVertexNormals();
+const colors = new Float32Array(pos.count * 3);
+geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+const wireMat = new THREE.MeshBasicMaterial({ vertexColors: true, wireframe: true, transparent: true, opacity: 0.55 });
+const fillMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.18, side: THREE.DoubleSide, depthWrite: false });
+const group = new THREE.Group();
+group.add(new THREE.Mesh(geo, fillMat));
+group.add(new THREE.Mesh(geo, wireMat));
+scene.add(group);
+
+// Base grid
+const grid = new THREE.GridHelper(SIZE, 16);
+grid.material.transparent = true; grid.material.opacity = 0.35;
+grid.position.y = -0.01;
+group.add(grid);
+
+// MCMC chains: each runs Metropolis-Hastings on the same density
+const N = 400, LIM = SIZE / 2 - 0.05;
+const chains = new Float32Array(N * 2);
+const pPos = new Float32Array(N * 3);
+for (let i = 0; i < N; i++) { chains[i * 2] = (Math.random() - 0.5) * SIZE * 0.9; chains[i * 2 + 1] = (Math.random() - 0.5) * SIZE * 0.9; }
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+const dot = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,0.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+const pMat = new THREE.PointsMaterial({ size: 0.18, map: dot, transparent: true, depthWrite: false, sizeAttenuation: true });
+const points = new THREE.Points(pGeo, pMat);
+group.add(points);
+
+function randn() { const u = 1 - Math.random(), v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function mcmcStep() {
+  for (let i = 0; i < N; i++) {
+    const x = chains[i * 2], z = chains[i * 2 + 1];
+    const nx = x + randn() * 0.22, nz = z + randn() * 0.22;
+    if (Math.abs(nx) < LIM && Math.abs(nz) < LIM && Math.random() < density(nx, nz) / Math.max(density(x, z), 1e-12)) {
+      chains[i * 2] = nx; chains[i * 2 + 1] = nz;
+    }
+    pPos[i * 3] = chains[i * 2]; pPos[i * 3 + 2] = chains[i * 2 + 1];
+    pPos[i * 3 + 1] = density(chains[i * 2], chains[i * 2 + 1]) * H + 0.06;
+  }
+  pGeo.attributes.position.needsUpdate = true;
+}
+
+// Theme-aware colouring
+function applyTheme() {
+  const low = new THREE.Color(tok('--line')), high = new THREE.Color(tok('--accent')), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const t = Math.pow(pos.getY(i) / (peak * H), 0.7);
+    c.copy(low).lerp(high, t); colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+  }
+  geo.attributes.color.needsUpdate = true;
+  pMat.color.set(tok('--warm'));
+  grid.material.color = new THREE.Color(tok('--line'));
+  if (grid.material.vertexColors) { grid.material.vertexColors = false; grid.material.needsUpdate = true; }
+}
+applyTheme();
+new MutationObserver(applyTheme).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+// Camera orbit: auto-rotate + drag
+let az = 0.7, pol = 1.02, radius = 11.4, dragging = false, lx = 0, ly = 0, idle = 0, tx = 0, ty = 0;
+canvas.addEventListener('pointerdown', e => { dragging = true; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e => {
+  const r = canvas.getBoundingClientRect(); tx = (e.clientX - r.left) / r.width - 0.5; ty = (e.clientY - r.top) / r.height - 0.5;
+  if (!dragging) return;
+  az -= (e.clientX - lx) * 0.006; pol = Math.min(1.35, Math.max(0.55, pol - (e.clientY - ly) * 0.004));
+  lx = e.clientX; ly = e.clientY; idle = 0;
+});
+const stop = () => { dragging = false; };
+canvas.addEventListener('pointerup', stop); canvas.addEventListener('pointercancel', stop);
+
+function placeCamera() {
+  const p = pol + ty * 0.06, a = az + tx * 0.12;
+  camera.position.set(radius * Math.sin(p) * Math.cos(a), radius * Math.cos(p) + 0.4, radius * Math.sin(p) * Math.sin(a));
+  camera.lookAt(0, 0.55, 0);
+}
+function resize() {
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  radius = w < 520 ? 13.4 : 11.4;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(wrap); resize();
+
+// Warm up chains so the first frame already looks converged-ish
+for (let k = 0; k < 40; k++) mcmcStep();
+
+let visible = true, last = 0;
+new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible && !reduce) requestAnimationFrame(loop); }).observe(wrap);
+function loop(t) {
+  if (!visible) return;
+  const dt = Math.min(0.05, (t - last) / 1000 || 0); last = t;
+  if (!dragging) { idle += dt; if (idle > 1.2) az += dt * 0.12; }
+  mcmcStep(); placeCamera(); renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+placeCamera(); renderer.render(scene, camera);
+if (!reduce) requestAnimationFrame(loop);
 </script>
 </body>
 </html>
